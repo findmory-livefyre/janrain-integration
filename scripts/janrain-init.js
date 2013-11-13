@@ -6,6 +6,9 @@ For more information about these settings, see the following documents:
     http://developers.janrain.com/documentation/widgets/social-sign-in-widget/social-sign-in-widget-api/settings/
     http://developers.janrain.com/documentation/widgets/user-registration-widget/capture-widget-api/settings/
     http://developers.janrain.com/documentation/widgets/social-sharing-widget/sharing-widget-js-api/settings/
+
+
+    this comes from their login page:  http://customer-dev.janrain.com/widgets/493a755cf999/index.html
 */
 
 (function() {

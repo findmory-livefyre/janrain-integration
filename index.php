@@ -17,6 +17,7 @@
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
         <script type="text/javascript" src="http://d134l0cdryxgwa.cloudfront.net/backplane2.js"></script>
         <script src="scripts/janrain-init.js"></script>
+        <script src="scripts/cookies.js"></script>
 
         <script>
             janrain.settings.capture.flowName = 'standard';
@@ -245,6 +246,114 @@
             janrain.settings.capture.backplaneVersion = 2;
             janrain.settings.capture.backplaneBlock = 20;
     	    janrain.settings.capture.backplaneServerBaseUrl='https://janrain-livefyre-demo.janrainbackplane.com/v2'
+        </script>
+
+        <!--livefyre-->
+        <script src="http://zor.fyre.co/wjs/v3.0/javascripts/livefyre.js"></script>
+        <div id="livefyre"></div>
+
+        <script>
+            /**
+             * New auth delegate through Backplane
+             * As stated above, in order for this to run on other environments,
+             * changes need to be made:
+             *  - a new custom domain
+             *  - a dns entry for the custom domain
+             */
+
+            // Takes an instance of the Backplane global object
+            var authDelegate = new fyre.conv.BackplaneAuthDelegate(window.Backplane);
+
+            /**
+             * Login function
+             * In this case, opens a login modal and triggers Backplane to start listening
+             * for login messages
+             */
+            authDelegate.login = function(delegate) {
+                var successCallback = function() {
+                    console.log('in the success callback');
+                    delegate.success();
+                    janrain.events.onCaptureLoginSuccess.removeHandler(successCallback);
+                    janrain.events.onModalClose.removeHandler(failureCallback);
+                };
+
+                var failureCallback = function() {
+                    delegate.failure();
+                    janrain.events.onModalClose.removeHandler(failureCallback);
+                    janrain.events.onCaptureLoginSuccess.removeHandler(successCallback);
+                };
+
+                //CAPTURE.startModalLogin();
+                janrain.capture.ui.modal.open();
+                window.Backplane.expectMessages('identity/login');
+                console.log('backplane listening....');
+                janrain.events.onCaptureLoginSuccess.addHandler(successCallback);
+                janrain.events.onModalClose.addHandler(failureCallback);
+            };
+
+            authDelegate.fetchAuthData = function(delegate) {
+                console.log('fetchAuthData...');
+                var isUserVerified = true;
+                if (isUserVerified) {
+                    delegate.base(function() {console.log('UserIsVerified');});
+                }
+            };
+
+            /**
+             * Logout function
+             * In this case, invalidates the session and removes the cookie.
+             * Also reloads the page to change state. In order to do this without a reload,
+             * it would be necessary to also update the UI.
+             */
+            authDelegate.logout = function(delegate) {
+                //CAPTURE.invalidateSession();
+                janrain.capture.ui.endCaptureSession();
+                // CAPTURE.util.delCookie('backplane-channel');
+                deleteCookie('backplane2-channel');
+                Backplane.resetCookieChannel();
+                fyre.conv.BackplaneAuthDelegate.prototype.logout.call(this, delegate);
+            };
+
+            /**
+             * View profile function
+             * Arguments are delegate parameter and an author parameter
+             * Used any time a view profile event is triggered
+             */
+            authDelegate.viewProfile = function(delegate, author) {
+                console.log(author);
+            };
+
+            /**
+             * Edit profile function
+             * Arguments are delegate parameter and an author parameter
+             * Used any time an edit profile event is triggered
+             */
+            authDelegate.editProfile = function(delegate, author) {
+                console.log(author);
+            };
+
+            /**
+             * Initializing the conversation
+             * In the Backplane case, only a couple modifications are necessary:
+             *  - Add a network
+             *  - Add the authDelegate (in this case, the Backplane version)
+             * Note: In the production version, conversation meta should be used,
+             * with checksum, etc. For dev, the below is fine.
+             */
+
+            var lf_config = {
+                'app': 'main',
+                'articleId': 'acme-1382022424063',
+                'checksum': '8d271153bfb657b81482ffe2f03cbc67',
+                'collectionMeta': 'eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJ1cmwiOiAiaHR0cDovL2FjbWUubGl2ZWZ5cmUuY29tL2phbnJhaW4iLCAidGFncyI6IFtdLCAiYXJ0aWNsZUlkIjogImFjbWUtMTM4MjAyMjQyNDA2MyIsICJ0aXRsZSI6ICJBY21lIEphbnJhaW4ifQ.lZZ8KhDmupyFAE0On6axlcksd3Pf4cF6XYMgh6wU6HY',
+                'el': 'livefyre',
+                'siteId': 345660
+            };
+
+            fyre.conv.load({
+                network: 'client-solutions.fyre.co',
+                authDelegate: authDelegate
+            }, [lf_config]);
         </script>
     </body>
 </html>
