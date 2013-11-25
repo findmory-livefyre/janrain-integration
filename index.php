@@ -17,7 +17,6 @@
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
         <script type="text/javascript" src="http://d134l0cdryxgwa.cloudfront.net/backplane2.js"></script>
         <script src="scripts/janrain-init.js"></script>
-        <script src="scripts/cookies.js"></script>
 
         <script>
             janrain.settings.capture.flowName = 'standard';
@@ -57,6 +56,7 @@
         		});
 
         		janrain.events.onCaptureScreenShow.addHandler(function(result) {
+                    console.log("showing....");
             		if (result.screen == "returnTraditional") {
                 		janrainReturnExperience();
             		}
@@ -245,7 +245,7 @@
             janrain.settings.capture.backplaneBusName = 'livefyre_demo';
             janrain.settings.capture.backplaneVersion = 2;
             janrain.settings.capture.backplaneBlock = 20;
-    	    janrain.settings.capture.backplaneServerBaseUrl='https://janrain-livefyre-demo.janrainbackplane.com/v2'
+    	    janrain.settings.capture.backplaneServerBaseUrl='https://janrain-livefyre-demo.janrainbackplane.com/v2'; //be sure to include the /v2
         </script>
 
         <!--livefyre-->
@@ -283,9 +283,11 @@
                     janrain.events.onCaptureLoginSuccess.removeHandler(successCallback);
                 };
 
-                //CAPTURE.startModalLogin();
-                janrain.capture.ui.modal.open();
-                window.Backplane.expectMessages('identity/login');
+                janrain.capture.ui.modal.open(); //something else is needed here... to deal with the REOPENING this problem.
+
+                //what is janrain doing on their SIGN IN button?
+
+                //window.Backplane.expectMessages('identity/login');  //not needed
                 console.log('backplane listening....');
                 janrain.events.onCaptureLoginSuccess.addHandler(successCallback);
                 janrain.events.onModalClose.addHandler(failureCallback);
@@ -306,11 +308,8 @@
              * it would be necessary to also update the UI.
              */
             authDelegate.logout = function(delegate) {
-                //CAPTURE.invalidateSession();
                 janrain.capture.ui.endCaptureSession();
-                // CAPTURE.util.delCookie('backplane-channel');
-                deleteCookie('backplane2-channel');
-                Backplane.resetCookieChannel();
+                //Backplane.resetCookieChannel();  //don't reset the cookie like this
                 fyre.conv.BackplaneAuthDelegate.prototype.logout.call(this, delegate);
             };
 
